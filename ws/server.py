@@ -3,7 +3,7 @@ import typing, websockets, asyncio, ast
 
 from .base import BaseSocket
 from .models.message import Message
-from .models.wbsprotocol import WBSProtocol
+from .models.wbprotocol import WBSProtocol
 
 class ServerSocket(BaseSocket):
     def __init__(self):
@@ -35,10 +35,7 @@ class ServerSocket(BaseSocket):
         await asyncio.wait([self.__message_consumer(websocket),
                             self.__on_connect(websocket, path)
                             ])
-    async def send(self, websocket: WBSProtocol, data: dict):
-        try:
-            await websocket.send(str(dict(data)))
-        except ValueError:
-            raise ValueError(f"\"data\" parameter expects a dictionary or a dictionary convertable object. Got {type(data).__name__}")
+    async def send(self, data: dict, websocket: WBSProtocol):
+        await WBSProtocol(websocket).send_message(data)
     async def recv(self, websocket: WBSProtocol):
         return await websocket.recv()

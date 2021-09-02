@@ -2,7 +2,6 @@ from datetime import datetime
 import websockets, typing, asyncio, ast
 
 from .base import BaseSocket
-from .models.wbsprotocol import WBSProtocol
 from .models.message import Message
 
 class ClientSocket(BaseSocket):
@@ -32,7 +31,7 @@ class ClientSocket(BaseSocket):
         await asyncio.wait([self.__message_consumer(),
                             self.__on_connect()
                             ])
-    async def send(self, message:typing.Union[str, bytes, bytearray]):
-        await self.connection.send(message)
+    async def send(self, message:dict):
+        await self.connection.send_message(message)
     async def recv(self):
         return await self.connection.recv()
