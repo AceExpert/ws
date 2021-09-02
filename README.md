@@ -17,8 +17,8 @@ async def on_connect(websocket, path):
     await websocket.send("hello bro")
 
 @server.on('message')
-async def on_message(message, websocket):
-    print(f'Received message: "{message}" from {websocket.remote_address}')
+async def on_message(message):
+    print(f'Received message: "{message.data}" from {websocket.author.remote_address}')
 
 server.listen("localhost", 3000)
 ```
@@ -27,7 +27,7 @@ server.listen("localhost", 3000)
 ```py
 import ws
 
-client = ws.ClientSocket("ws://localhost:3000")
+client = ws.ClientSocket()
 
 @client.on('connect')
 async def on_connect():
@@ -35,10 +35,10 @@ async def on_connect():
 
 @client.on('message')
 async def on_message(message):
-    print(f'Received message: "{message}" from {client.connection.remote_address}')
+    print(f'Received message: "{message.data}" from {client.connection.remote_address}')
     await client.send("huh")
 
-client.connect()
+client.connect("ws://localhost:3000")
 ```
 ## Why this exists?
 I made this library because I was fed up of websockets library because it didn't have event based communication like Node.js's ws library and that made it difficult to work about it. I **may or may not** work on it any more, don't keep any expectations, this is a one day project lol. 
