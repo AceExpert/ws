@@ -1,28 +1,34 @@
-import websockets, typing, asyncio
+from datetime import datetime
+import websockets, typing, asyncio, ast
 
 from .base import BaseSocket
+from .models.wbsprotocol import WBSProtocol
+from .models.message import Message
 
 class ClientSocket(BaseSocket):
-    def __init__(self, ws:str):
+    def __init__(self):
         super().__init__()
-        self.__ws = ws
         self.loop = asyncio.get_event_loop()
-        self.listeners = {'message':[self.on_message], 'connect':[self.on_connect]}
+        self.listeners['message'].append(self.on_message)
+        self.listeners['connect'].append(self.on_connect)
         self.connection = None
-    def connect(self):
-        self.loop.run_until_complete(self.__main())
+    def connect(self, ws_url: str):
+        self.loop.run_until_complete(self.__main(ws_url))
         self.loop.run_forever()
     async def on_message(self, message):
         pass
     async def __message_consumer(self):
         async for message in self.connection:
-            await asyncio.wait([coro(message) for coro in self.listeners['message']])
+            await asyncio.wait([coro(Message(data=ast.literal_eval(message),
+                                             socket=self.connection,
+                                             created=datetime.utcnow()
+                                            )) for coro in self.listeners['message']])
     async def __on_connect(self):
         await asyncio.wait([coro() for coro in self.listeners['connect']])
     async def on_connect(self):
         pass
-    async def __main(self):
-        self.connection = await websockets.connect(self.__ws)
+    async def __main(self, ws_url):
+        self.connection = await websockets.connect(ws_url)
         await asyncio.wait([self.__message_consumer(),
                             self.__on_connect()
                             ])
