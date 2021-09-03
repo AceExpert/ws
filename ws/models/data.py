@@ -1,8 +1,12 @@
 import typing
 
 class WebSocketData(dict):
-    def __init__(self, data: dict):
+    def __init__(self, data: dict = {}):
         super().__init__(data)
+        try:
+            self.__recurse_to_self()
+        except RecursionError:
+            pass
     def __getattr__(self, key):
         try:
             return super().__getitem__(key)
@@ -10,15 +14,27 @@ class WebSocketData(dict):
             raise AttributeError(e)
     def __setattr__(self, name: str, value: typing.Any) -> None:
         super().__setitem__(name, value)
-    def get(self, key: typing.Any, default: typing.Any = None):
-        return super().get(key, default)
-    def set(self, key: typing.Any, value: typing.Any) -> bool:
-        super().__setitem__(key, value)
-        return True
     def __delattr__(self, name: str):
-        super().pop(name)
-    def __delitem__(self, key: typing.Any):
-        super().pop(key)
+        return super().pop(name)
     def __iter__(self):
-        for key, value in self.__data:
-            yield (key, value)
+        return super().items()
+    def map(self, func: typing.Callable):
+        _copy_data = super().copy()
+        for key, val in super().items():
+            _copy_data.__setitem__(key, func((key, val)))
+        return _copy_data
+    def map_key(self, func: typing.Callable):
+        _copy_data = super().copy()
+        for key, val in super().items():
+            _copy_data.__setitem__(func((key, val)), _copy_data.pop(key))
+        return _copy_data
+    def map_items(self, func: typing.Callable):
+        _copy_data = super().copy()
+        for key, val in super().items():
+            item = func((key, val))
+            _copy_data.__setitem__(item[0], item[1])
+        return _copy_data
+    def __recurse_to_self(self):
+        for key, value in super().items():
+            if type(value) == dict:
+                super().__setitem__(key, WebSocketData(value))

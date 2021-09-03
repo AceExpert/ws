@@ -11,6 +11,10 @@ import ws
 
 server = ws.ServerSocket()
 
+@server.on('ready')
+async def on_ready():
+    print(f"Server is ready. Listening at ws://{server.address}:{server.port}")
+
 @server.on('connect')
 async def on_connect(websocket, path):
     print(f"WebSocket at {websocket.remote_address} connected.")
