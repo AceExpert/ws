@@ -13,12 +13,12 @@ server = ws.ServerSocket()
 
 @server.on('connect')
 async def on_connect(websocket, path):
-    print(f"Connected to {websocket.remote_address}")
-    await websocket.send("hello bro")
+    print(f"WebSocket at {websocket.remote_address} connected.")
+    await websocket.send(data={'nice': 'bello', 'yes':'huh'})
 
 @server.on('message')
 async def on_message(message):
-    print(f'Received message: "{message.data}" from {websocket.author.remote_address}')
+    print(f"{message.data}")
 
 server.listen("localhost", 3000)
 ```
@@ -35,8 +35,8 @@ async def on_connect():
 
 @client.on('message')
 async def on_message(message):
-    print(f'Received message: "{message.data}" from {client.connection.remote_address}')
-    await client.send("huh")
+    print(f'{message.data}')
+    print(f'{message.data.nice} {message.data.yes}')
 
 client.connect("ws://localhost:3000")
 ```

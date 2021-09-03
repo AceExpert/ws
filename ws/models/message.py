@@ -1,13 +1,13 @@
-import websockets, datetime, typing
+import datetime, typing
 
-from .data import WebData
-from .wbprotocol import WBSProtocol
+from .data import WebSocketData
+from ..wsprotocols import WSSProtocol, WSCProtocol
 
 class Message:
     def __init__(self, data: dict, 
-                       socket: typing.Union[WBSProtocol, websockets.WebSocketClientProtocol] = None, 
-                       created: datetime.datetime = None):
-        self.data: typing.Union[WebData, None] = WebData(data)
-        self.author: typing.Union[WBSProtocol, websockets.WebSocketClientProtocol, None] = socket
-        self.created_at: datetime.datetime = created
+                       websocket: typing.Union[WSSProtocol, WSCProtocol] = None, 
+                       created_at: datetime.datetime = None):
+        self.data: typing.Union[WebSocketData, None] = WebSocketData(data)
+        self.author: typing.Union[WSSProtocol, WSCProtocol, None] = websocket
+        self.created_at: datetime.datetime = created_at
     

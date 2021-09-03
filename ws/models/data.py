@@ -1,6 +1,6 @@
 import typing
 
-class WebData(dict):
+class WebSocketData(dict):
     def __init__(self, data: dict):
         super().__init__(data)
     def __getattr__(self, key):
@@ -22,5 +22,3 @@ class WebData(dict):
     def __iter__(self):
         for key, value in self.__data:
             yield (key, value)
-    def items(self):
-        return self.__iter__()

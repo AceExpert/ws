@@ -1,6 +1,7 @@
 import typing
 
 from .utils.converters import event
+
 class BaseSocket:
     def __init__(self):
         self.listeners: typing.Dict[str, typing.List[typing.Coroutine]] = {

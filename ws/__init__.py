@@ -1,8 +1,8 @@
 from .client import ClientSocket
 from .server import ServerSocket
-from .models.message import Message
-from .models.wbprotocol import WBSProtocol
-from .models.data import WebData
+from .models import Message
+from .wsprotocols import WSSProtocol, WSCProtocol
+from .models.data import WebSocketData
 
-__version__ = "0.1"
+__version__ = "1.0"
 __author__ = "Cybertron"
