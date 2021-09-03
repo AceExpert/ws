@@ -16,9 +16,9 @@ async def on_ready():
     print(f"Server is ready. Listening at ws://{server.address}:{server.port}")
 
 @server.on('connect')
-async def on_connect(websocket, path):
-    print(f"WebSocket at {websocket.remote_address} connected.")
-    await websocket.send(data={'nice': 'bello', 'yes':'huh'})
+async def on_connect(client, path):
+    print(f"WebSocket at {client.remote_address} connected.")
+    await client.send(data={'nice': 'bello', 'yes':'huh'})
 
 @server.on('message')
 async def on_message(message):
