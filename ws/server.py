@@ -1,9 +1,11 @@
 from datetime import datetime
-import typing, websockets, asyncio, ast
+import typing, websockets, asyncio, json
+from json.decoder import JSONDecodeError
 
 from .base import BaseSocket
 from .models.message import Message
 from .wsprotocols import WSSProtocol
+
 
 class ServerSocket(BaseSocket):
     def __init__(self):
@@ -22,23 +24,25 @@ class ServerSocket(BaseSocket):
         self.loop.run_forever()
     async def on_message(self, message):
         pass
-    async def __message_consumer(self, websocket: WSSProtocol):
+    async def __message_consumer(self, websocket):
         async for message in websocket:
-            await asyncio.wait([coro(Message(data=ast.literal_eval(message), 
+            try:
+                data = json.loads(message)
+            except JSONDecodeError:
+                data = message
+            await asyncio.wait([coro(Message(data=data, 
                                              websocket=websocket, 
                                              created_at=datetime.utcnow())) for coro in self.listeners['message']])
-    async def __on_connect(self, websocket: WSSProtocol, path):
-        await asyncio.wait([coro(websocket, path) for coro in self.listeners['connect']])
-    async def on_connect(self, websocket, path):
+    async def __on_connect(self, client, path):
+        await asyncio.wait([coro(client, path) for coro in self.listeners['connect']])
+    async def on_connect(self, client, path):
         pass
     async def on_ready(self):
         pass
-    async def __main(self, websocket: WSSProtocol, path):
+    async def __main(self, websocket, path):
         self.clients.append(websocket)
         await asyncio.wait([self.__message_consumer(websocket),
                             self.__on_connect(websocket, path)
                             ])
-    async def send(self, data: dict, client: WSSProtocol):
+    async def send(self, data: typing.Any, client):
         await client.send(data)
-    async def recv(self, client: WSSProtocol):
-        return await client.recv()

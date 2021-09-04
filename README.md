@@ -13,16 +13,20 @@ server = ws.ServerSocket()
 
 @server.on('ready')
 async def on_ready():
-    print(f"Server is ready. Listening at ws://{server.address}:{server.port}")
+    print(f"Server is ready listening at ws://{server.address}:{server.port}")
 
 @server.on('connect')
 async def on_connect(client, path):
-    print(f"WebSocket at {client.remote_address} connected.")
-    await client.send(data={'nice': 'bello', 'yes':'huh'})
+    print(f"Client at {client.remote_address} connected.")
+    await client.send(
+            data={'status':"Okay", "alive": True, "ping": 10.4}, 
+            content="huh"
+        )
 
 @server.on('message')
 async def on_message(message):
     print(f"{message.data}")
+    print(f"Received from: {message.author.remote_address} at {message.created_at}")
 
 server.listen("localhost", 3000)
 ```
@@ -40,9 +44,11 @@ async def on_connect():
 @client.on('message')
 async def on_message(message):
     print(f'{message.data}')
-    print(f'{message.data.nice} {message.data.yes}')
+    print(f'Status: {message.data.status} Alive: {message.data.alive} Ping: {message.data.ping}')
+    print(f"Received from: {message.author.remote_address} at {message.created_at}")
 
 client.connect("ws://localhost:3000")
 ```
+
 ## Why this exists?
 I made this library because I was fed up of websockets library because it didn't have event based communication like Node.js's ws library and that made it difficult to work about it. I **may or may not** work on it any more, don't keep any expectations, this is a one day project lol. 

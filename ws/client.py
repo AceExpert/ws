@@ -1,5 +1,6 @@
 from datetime import datetime
-import websockets, typing, asyncio, ast
+import websockets, typing, asyncio, json
+from json.decoder import JSONDecodeError
 
 from .base import BaseSocket
 from .models import Message
@@ -19,7 +20,11 @@ class ClientSocket(BaseSocket):
         pass
     async def __message_consumer(self):
         async for message in self.connection:
-            await asyncio.wait([coro(Message(data=ast.literal_eval(message),
+            try:
+                data = json.loads(message)
+            except JSONDecodeError:
+                data = message
+            await asyncio.wait([coro(Message(data=data,
                                              websocket=self.connection,
                                              created_at=datetime.utcnow()
                                             )) for coro in self.listeners['message']])
@@ -32,7 +37,5 @@ class ClientSocket(BaseSocket):
         await asyncio.wait([self.__message_consumer(),
                             self.__on_connect()
                             ])
-    async def send(self, message:dict):
-        await self.connection.send_message(message)
-    async def recv(self):
-        return await self.connection.recv()
+    async def send(self, message: typing.Any):
+        await self.connection.send(message)
