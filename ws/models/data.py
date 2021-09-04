@@ -1,6 +1,6 @@
 import typing
 
-class WebSocketData(dict):
+class Object(dict):
     def __init__(self, data: dict = {}):
         super().__init__(data)
         try:
@@ -37,4 +37,4 @@ class WebSocketData(dict):
     def __recurse_to_self(self):
         for key, value in super().items():
             if type(value) == dict:
-                super().__setitem__(key, WebSocketData(value))
+                super().__setitem__(key, Object(value))

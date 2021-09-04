@@ -1,4 +1,4 @@
-from .data import WebSocketData
+from .data import Object
 from .message import Message
 
-__all__ = ['Message', 'WebSocketData']
+__all__ = ['Message', 'Object']
