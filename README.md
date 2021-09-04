@@ -19,8 +19,7 @@ async def on_ready():
 async def on_connect(client, path):
     print(f"Client at {client.remote_address} connected.")
     await client.send(
-            data={'status':"Okay", "alive": True, "ping": 10.4}, 
-            content="huh"
+            data={'status':"Okay", "alive": True, "ping": 10.4}
         )
 
 @server.on('message')
@@ -46,6 +45,7 @@ async def on_message(message):
     print(f'{message.data}')
     print(f'Status: {message.data.status} Alive: {message.data.alive} Ping: {message.data.ping}')
     print(f"Received from: {message.author.remote_address} at {message.created_at}")
+    await message.author.send(content="Okay received.")
 
 client.connect("ws://localhost:3000")
 ```
