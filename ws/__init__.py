@@ -4,5 +4,5 @@ from .models import Message, Object
 from .wsprotocols import WSSProtocol, WSCProtocol
 from .exceptions import ParameterConflict
 
-__version__ = "1.4.3"
+__version__ = "1.4.5"
 __author__ = "Cybertron"

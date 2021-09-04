@@ -33,9 +33,9 @@ class ClientSocket(BaseSocket):
     async def on_connect(self):
         pass
     async def __main(self, ws_url):
-        self.connection: WSCProtocol = await websockets.connect(ws_url, create_protocol=WSCProtocol)
+        self.connection = await websockets.connect(ws_url, create_protocol=WSCProtocol)
         await asyncio.wait([self.__message_consumer(),
                             self.__on_connect()
                             ])
-    async def send(self, message: typing.Any):
-        await self.connection.send(message)
+    async def send(self, content: typing.Any = None, *, data: dict = None):
+        await self.connection.send(content=content, data=data)

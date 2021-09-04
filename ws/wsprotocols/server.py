@@ -7,7 +7,7 @@ class WSSProtocol(websockets.WebSocketServerProtocol):
             A subclass of WebSocketServerProtocol to provide extended send and receive functionalities. 
         """
         super().__init__(*args, **kwargs)
-    async def send(self, data:dict = None, content: typing.Union[str, bytes, bytearray, typing.List[typing.Any]] = None):
+    async def send(self, content: typing.Union[str, bytes, bytearray, typing.List[typing.Any]] = None, *, data: dict = None):
         if not data and not content:
             raise TypeError("Missing either both of \"data\" or \"content\" parameter. Any one is required.")
         if data and content:

@@ -44,5 +44,5 @@ class ServerSocket(BaseSocket):
         await asyncio.wait([self.__message_consumer(websocket),
                             self.__on_connect(websocket, path)
                             ])
-    async def send(self, data: typing.Any, client):
-        await client.send(data)
+    async def send(self, client, content: typing.Any = None, *, data: dict = None):
+        await client.send(data=data, content=content)
