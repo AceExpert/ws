@@ -1,8 +1,7 @@
 import typing
 from typing import overload
 
-from .utils.converters import event
-from .utils import enforce_type
+from .utils import to_event, enforce_type
 from .models import Object
 
 class BaseSocket:
@@ -18,7 +17,7 @@ class BaseSocket:
     def on(self, event: str):
         ...
     @enforce_type
-    def on(self, evnt: event):
+    def on(self, evnt: to_event):
         def decorator(coro: typing.Coroutine):
             if not self.listeners[evnt]: 
                 self.listeners[evnt] = [coro]
