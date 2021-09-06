@@ -27,6 +27,11 @@ async def on_message(message):
     print(f"{message.data}")
     print(f"Received from: {message.author.remote_address} at {message.created_at}")
 
+@server.on('disconnect')
+async def on_disconnect(client, code, reason):
+    print(f"Client at {client.remote_address} disconnected with code: ", code, "and reason: ", reason)
+    print(server.disconnected_clients)
+
 server.listen("localhost", 3000)
 ```
 
@@ -39,6 +44,7 @@ client = ws.ClientSocket()
 @client.on('connect')
 async def on_connect():
     print(f"Connected to {client.connection.remote_address}")
+    print(client.connection)
 
 @client.on('message')
 async def on_message(message):
@@ -47,8 +53,13 @@ async def on_message(message):
     print(f"Received from: {message.author.remote_address} at {message.created_at}")
     await message.author.send(content="Okay received.")
 
+@client.on('disconnect')
+async def on_disconnect(code, reason):
+    print(f"{client.connection} disconnect with code: ", code, "and reason: ", reason)
+    print(client.disconnection)
+
 client.connect("ws://localhost:3000")
 ```
 
 ## Why this exists?
-I made this library because I was fed up of websockets library because it didn't have event based communication like Node.js's ws library and that made it difficult to work about it. I **may or may not** work on it any more, don't keep any expectations, this is a one day project lol. 
+I made this library because I was fed up of websockets library because it didn't have event based communication like Node.js's ws library and that made it difficult to work about it. Before I was doubtful whether I would work on it anymore or not... but it has went on to become a pretty large library but still not well known as of now... 
