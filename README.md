@@ -69,5 +69,9 @@ async def on_close(code, reason):
 client.connect("ws://localhost:3000")
 ```
 
-## Why this exists?
+## FAQ
+### What's the difference between `on_disconnect` and `on_close` event listeners ?
+The difference isn't huge but it is there. `on_disconnect` event is fired only if the client or the server **did not** closed the connection properly, the TCP Connection was lost suddenly raising the websockets' ConnectionClosedError in the libraries internal message consumer. In such cases the code returned is usually `1006` and there is no reason. While `on_close` event listener is called if the connection was closed properly, that could be done by calling the libraries' ClientSocket or ServerSocket's `.close` method and providing a reason and error code optionally. This causes the internal message consumer task on both sides to exit / return that in turn calls the attached listener functions. 
+**Note:** Unlike `on_disconnect` listener, `on_close` is called on both sides that is both on the client and server websocket sides with the same reason and code.
+### Why this exists?
 I made this library because I was fed up of websockets library because it didn't have event based communication like Node.js's ws library and that made it difficult to work about it. Before I was doubtful whether I would work on it anymore or not... but it has went on to become a pretty large library but still not well known as of now... 
