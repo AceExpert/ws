@@ -13,7 +13,7 @@ class Object(dict):
         except KeyError as e:
             raise AttributeError(e)
     def __setattr__(self, name: str, value: typing.Any) -> None:
-        super().__setitem__(name, value)
+        super().__setitem__(name, Object(value) if type(value) == dict else value)
     def __delattr__(self, name: str):
         return super().pop(name)
     def __iter__(self):
