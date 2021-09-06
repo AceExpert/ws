@@ -32,6 +32,10 @@ async def on_disconnect(client, code, reason):
     print(f"Client at {client.remote_address} disconnected with code: ", code, "and reason: ", reason)
     print(server.disconnected_clients)
 
+@server.on("close")
+async def on_close(client, code, reason):
+    print(f"Client at {client.remote_address} closed connection with code: {code} and reason: {reason}")
+
 server.listen("localhost", 3000)
 ```
 
@@ -57,6 +61,10 @@ async def on_message(message):
 async def on_disconnect(code, reason):
     print(f"{client.connection} disconnect with code: ", code, "and reason: ", reason)
     print(client.disconnection)
+
+@client.on("close")
+async def on_close(code, reason):
+    print(f"{client.connection.remote_address} closed connection with code: {code} and reason: {reason}")
 
 client.connect("ws://localhost:3000")
 ```

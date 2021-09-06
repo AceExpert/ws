@@ -14,6 +14,7 @@ class ClientSocket(BaseSocket):
         self.listeners['message'].append(self.on_message)
         self.listeners['connect'].append(self.on_connect)
         self.listeners['disconnect'].append(self.on_disconnect)
+        self.listeners.close.append(self.on_close)
         self.connection = None
         self.disconnection = None
     def connect(self, ws_url: str):
@@ -35,16 +36,24 @@ class ClientSocket(BaseSocket):
         except ConnectionClosedError as e:
             self.disconnection = Object({'code': e.code, 'reason': e.reason, 'disconnected': True})
             await asyncio.wait([coro(e.code, e.reason) for coro in self.listeners.disconnect])
+            return e
     async def __on_connect(self):
         await asyncio.wait([coro() for coro in self.listeners['connect']])
     async def on_connect(self):
         pass
     async def on_disconnect(self, code, reason):
         pass
+    async def on_close(self, code, reason):
+        pass
     async def __main(self, ws_url):
         self.connection = await websockets.connect(ws_url, create_protocol=WSCProtocol)
-        await asyncio.wait([self.__message_consumer(),
+        done, pending = await asyncio.wait([self.__message_consumer(),
                             self.__on_connect()
-                            ])
+                            ], return_when=asyncio.ALL_COMPLETED)
+        if ConnectionClosedError in [type(ret) for ret in done]: return
+        self.disconnection = Object({'code': self.connection.close_code, 'reason': self.connection.close_reason, 'disconnected': True})
+        await asyncio.wait([coro(self.connection.close_code, self.connection.close_reason) for coro in self.listeners.close])
     async def send(self, content: typing.Any = None, *, data: dict = None):
         await self.connection.send(content=content, data=data)
+    async def close(self, code: int, reason: str = ''):
+        await self.connection.close(code=code, reason=reason)
