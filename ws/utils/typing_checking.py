@@ -1,4 +1,4 @@
-import typing, inspect
+import typing, inspect, asyncio
 from inspect import Parameter
 
 def enforce_type(func: typing.Union[typing.Callable, typing.Coroutine]):
@@ -10,9 +10,10 @@ def enforce_type(func: typing.Union[typing.Callable, typing.Coroutine]):
             elif val[1] in [Parameter.POSITIONAL_OR_KEYWORD, Parameter.KEYWORD_ONLY, Parameter.VAR_KEYWORD] and key not in kwargs:
                 kwargs[key] = val[0]
         annotation_vals = {list(func.__code__.co_varnames).index(key):vals for key, vals in func.__annotations__.items()}
-        args = [annotation_vals[j](i) if j in list(annotation_vals.keys()) else i for i,j in zip(args, range(len(args)))]
-        kwargs = {key:func.__annotations__[key](value) if key in func.__annotations__ else value for key, value in kwargs.items()}
-        return func(*args, **kwargs)
+        args = [annotation_vals[j](i) if j in list(annotation_vals.keys()) and i != None else i for i,j in zip(args, range(len(args)))]
+        kwargs = {key:func.__annotations__[key](value) if key in func.__annotations__ and value != None else value for key, value in kwargs.items()}
+        if inspect.iscoroutinefunction(func): return asyncio.run(func(*args, **kwargs))
+        else: return func(*args, **kwargs)
     return wrapper
 
 def get_defaults(func: typing.Union[typing.Callable, typing.Coroutine]):
