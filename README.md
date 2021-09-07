@@ -89,7 +89,10 @@ async def on_message(message):
     if message.data.startswith("!confirm"):
         await message.author.send("Send yes or no?")
         try:
-            conmes = await server.wait_for('message', timeout=1, check=lambda rm: rm.data.lower().strip() in ['yes', 'no'] and rm.author.remote_address == message.author.remote_address)
+            conmes = await server.wait_for(
+                'message', 
+                timeout=300, 
+                check=lambda rm: rm.data.lower().strip() in ['yes', 'no'] and rm.author.remote_address == message.author.remote_address)
             print(conmes.data)
             if conmes.data.lower().strip() == 'yes':
                 await conmes.author.send("done")
@@ -128,9 +131,13 @@ async def on_message(message):
     if message.data in ['done', 'not done']:
         return
     await asyncio.sleep(3)
-    await message.author.send("This is a random message. This won't be collected by the event collector on the server side due to the check condition.")
+    await message.author.send(
+         "This is a random message. This won't be collected by the event collector on the server side due to the check condition."
+    )
     await asyncio.sleep(3)
-    await message.author.send("yes") #this will be collected and you would receive a response "done" for this, provide "no" and you will get "not done" response
+    await message.author.send(
+        "yes"
+    ) #this will be collected and you would receive a response "done" for this, provide "no" and you will get "not done" response
 
 @client.on('disconnect')
 async def on_disconnect(code, reason):
