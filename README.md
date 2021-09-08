@@ -72,6 +72,7 @@ Event collector (.wait_for method) example.
 `server.py`
 ```py
 import ws
+import asyncio
 
 server = ws.ServerSocket()
 
