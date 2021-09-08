@@ -22,6 +22,6 @@ class WSCProtocol(websockets.WebSocketClientProtocol):
         except TypeError as e:
             raise TypeError(". ".join(list(e.args)))
     def __repr__(self) -> str:
-        return f"<WSServerProtocol remote_address={self.remote_address} local_address={self.local_address}>"
+        return f"<WSClientProtocol remote_address={self.remote_address} local_address={self.local_address}>"
     def __str__(self) -> str:
         return self.__repr__()
