@@ -6,6 +6,7 @@ from websockets import ConnectionClosedError
 from .base import BaseSocket
 from .models import Message, Object
 from .wsprotocols import WSCProtocol
+from .collector import EventCollector
 
 class ClientSocket(BaseSocket):
     def __init__(self):
@@ -16,8 +17,8 @@ class ClientSocket(BaseSocket):
         self.listeners.close.append(self.on_close)
         self.connection = None
         self.disconnection = None
-    def connect(self, ws_url: str):
-        self.loop.run_until_complete(self.__main(ws_url))
+    def connect(self, uri: str, ssl=None):
+        self.loop.run_until_complete(self.__main(uri, ssl))
         self.loop.run_forever()
     async def on_message(self, message):
         pass
@@ -55,10 +56,17 @@ class ClientSocket(BaseSocket):
             try:
                 futures[0].set_result(event_data[0] if len(event_data) == 1 else event_data)
                 self.listeners[f"{event}_collector"].remove(futures)
-            except asyncio.InvalidStateError:
-                self.listeners[f"{event}_collector"].remove(futures)
-    async def __main(self, ws_url):
-        self.connection = await websockets.connect(ws_url, create_protocol=WSCProtocol)
+            except asyncio.exceptions.InvalidStateError:
+                try:
+                    self.listeners[f"{event}_collector"].remove(futures)
+                except ValueError:
+                    pass
+            except ValueError:
+                pass
+    def collector(self, time: float):
+        return EventCollector(websocket=self, time=time)
+    async def __main(self, uri, ssl=None):
+        self.connection = await websockets.connect(uri, create_protocol=WSCProtocol, ssl=ssl)
         self.loop.create_task(self.__on_connect())
         done, pending = await asyncio.wait([self.__message_consumer()], return_when=asyncio.ALL_COMPLETED)
         if ConnectionClosedError in [type(ret.result()) for ret in done]: return

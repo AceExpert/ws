@@ -6,6 +6,7 @@ from websockets import ConnectionClosedError
 from .base import BaseSocket
 from .models.message import Message, Object
 from .wsprotocols import WSSProtocol
+from .collector import EventCollector
 
 class ServerSocket(BaseSocket):
     def __init__(self):
@@ -17,10 +18,10 @@ class ServerSocket(BaseSocket):
         self.listeners.close.append(self.on_close)
         self.clients = []
         self.disconnected_clients = []
-    def listen(self, addr:str, port:int):
+    def listen(self, addr:str, port:int, ssl=None):
         self.address = addr
         self.port = port
-        self.server = websockets.serve(self.__main, addr, port, create_protocol = WSSProtocol)
+        self.server = websockets.serve(self.__main, addr, port, create_protocol = WSSProtocol, ssl=ssl)
         self.loop.run_until_complete(self.server)
         self.loop.run_until_complete(asyncio.wait([coro() for coro in self.listeners.ready if type(coro) != tuple]))
         self.loop.run_forever()
@@ -63,8 +64,15 @@ class ServerSocket(BaseSocket):
             try: 
                 futures[0].set_result(event_data[0] if len(event_data) == 1 else event_data)
                 self.listeners[f"{event}_collector"].remove(futures)
-            except asyncio.InvalidStateError:
-                self.listeners[f"{event}_collector"].remove(futures)
+            except asyncio.exceptions.InvalidStateError:
+                try:
+                    self.listeners[f"{event}_collector"].remove(futures)
+                except ValueError:
+                    pass
+            except ValueError:
+                pass
+    def collector(self, time: float):
+        return EventCollector(websocket=self, time=time)
     async def __main(self, websocket, path):
         self.clients.append(websocket)
         self.loop.create_task(self.__on_connect(websocket, path))
