@@ -26,6 +26,8 @@ class BaseSocket:
         ...
     @enforce_type
     def on(self, event: to_event):
+        if event not in self.events:
+            raise EventNotFound(f"There is no registerable event with the name \"{event}\".")
         def decorator(coro: typing.Coroutine):
             if not inspect.iscoroutinefunction(coro):
                 raise TypeError(f"Expected a coroutine function found {type(coro).__name__}.")
@@ -45,6 +47,7 @@ class BaseSocket:
         ...
     @enforce_type
     def wait_for(self, event: to_event, *, check = None, timeout: float = None):
+        if event not in self.events: raise EventNotFound(f"There is no registerable event with the name \"{event}\".")
         future = self.loop.create_future()
         if check in [True, None, False]:
             check = lambda *args: True if check in [True, None] else False
