@@ -18,10 +18,11 @@ class ServerSocket(BaseSocket):
         self.listeners.close.append(self.on_close)
         self.clients = []
         self.disconnected_clients = []
-    def listen(self, addr:str, port:int, ssl=None):
+    def listen(self, addr:str, port:int, **kwargs):
+        kwargs.pop('create_protocol', None)
         self.address = addr
         self.port = port
-        self.server = websockets.serve(self.__main, addr, port, create_protocol = WSSProtocol, ssl=ssl)
+        self.server = websockets.serve(self.__main, addr, port, create_protocol = WSSProtocol, **kwargs)
         self.loop.run_until_complete(self.server)
         self.loop.run_until_complete(asyncio.wait([coro() for coro in self.listeners.ready if type(coro) != tuple]))
         self.loop.run_forever()
@@ -42,10 +43,10 @@ class ServerSocket(BaseSocket):
         except ConnectionClosedError as e:
             self.clients.remove(websocket)
             self.disconnected_clients.append({websocket: Object({'code': e.code, 'reason': e.reason, 'disconnected': True})})
-            await asyncio.wait([coro(websocket, e.code, e.reason) for coro in self.listeners.disconnect]+[
+            self.loop.create_task(asyncio.wait([coro(websocket, e.code, e.reason) for coro in self.listeners.disconnect]+[
                      self.__collector_verifier(futures, 'disconnect', e.code, e.reason) 
                      for futures in self.listeners.disconnect_collector
-                    ])
+                    ]))
             return e
     async def __on_connect(self, client, path):
         await asyncio.wait([coro(client, path) for coro in self.listeners.connect]+[self.__collector_verifier(futures, 'connect', client, path) 

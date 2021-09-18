@@ -66,3 +66,11 @@ class BaseSocket:
             return self.listeners[event]
         else:
             return Object({event_name:listeners for event_name, listeners in self.listeners.items() if not event_name.endswith("_collector")})
+    def set_listener(self, event: str, coro: typing.Coroutine):
+        event = to_event(event)
+        if event not in self.events: raise EventNotFound(f"There is no registerable event with the name \"{event}\".")
+        if not self.listeners[event]: 
+            self.listeners[event] = [coro]
+        else: 
+            self.listeners[event].append(coro)
+        return coro
