@@ -1,6 +1,6 @@
+import asyncio
 from datetime import datetime
 from typing import Callable, List, Any
-from asyncio import TimeoutError
 
 class EventCollector:
     __slots__ = '__websocket', '__time'
@@ -17,6 +17,6 @@ class EventCollector:
                                                              check=check, 
                                                              timeout=self.__time - (datetime.datetime.utcnow()-start_time).total_seconds())                
                 collected.append(event_data)
-            except TimeoutError:
+            except asyncio.TimeoutError:
                 pass
         return collected
