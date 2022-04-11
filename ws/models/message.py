@@ -4,6 +4,8 @@ from .data import Object
 from ..wsprotocols import WSSProtocol, WSCProtocol
 
 class Message:
+    __slots__ = 'data', 'author', 'created_at'
+    
     def __init__(self, data: typing.Any = {}, 
                        websocket: typing.Union[WSSProtocol, WSCProtocol] = None, 
                        created_at: datetime.datetime = None):

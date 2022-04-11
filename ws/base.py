@@ -7,6 +7,8 @@ from .collector import EventCollector
 from .exceptions import EventNotFound
 
 class BaseSocket:
+    __slots__ = 'listeners', 'events', 'loop'
+    
     def __init__(self):
         self.listeners: Object = Object({
             'message':[],
