@@ -5,7 +5,7 @@ with open("./README.md", "r", encoding="utf-8") as fh:
 
 setuptools.setup(
     name="c-websockets",
-    version="2.1.0",
+    version="2.1.3",
     author="Cybertron",
     packages=['ws', 'ws.exceptions', 'ws.models', 'ws.utils', 'ws.wsprotocols'],
     description="WebSocket implementation in Python built on top of websockets python library. Similar to Node.js's ws.",

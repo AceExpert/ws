@@ -13,9 +13,11 @@ class Object(dict):
         except KeyError as e:
             raise AttributeError(e)
     def __setattr__(self, name: str, value: typing.Any) -> None:
-        super().__setitem__(name, Object(value) if type(value) == dict else value)
+        return super().__setitem__(name, Object(value) if type(value) == dict else value)
     def __delattr__(self, name: str):
         return super().pop(name)
+    def __setitem__(self, k, value) -> None:
+        return super().__setitem__(k, Object(value) if type(value) == dict else value)
     def __iter__(self):
         return super().items()
     def map(self, func: typing.Callable):
@@ -29,7 +31,7 @@ class Object(dict):
             _copy_data.__setitem__(func((key, val)), _copy_data.pop(key))
         return _copy_data
     def map_items(self, func: typing.Callable):
-        _copy_data = super().copy()
+        _copy_data = {}
         for key, val in super().items():
             item = func((key, val))
             _copy_data.__setitem__(item[0], item[1])

@@ -18,15 +18,17 @@ class ServerSocket(BaseSocket):
         self.listeners.close.append(self.on_close)
         self.clients = []
         self.disconnected_clients = []
-    def listen(self, addr:str, port:int, ssl=None):
+    def listen(self, addr:str, port:int, **kwargs):
+        kwargs.pop('create_protocol', None)
         self.address = addr
         self.port = port
-        self.server = websockets.serve(self.__main, addr, port, create_protocol = WSSProtocol, ssl=ssl)
+        self.server = websockets.serve(self.__main, addr, port, create_protocol = WSSProtocol, **kwargs)
         self.loop.run_until_complete(self.server)
-        self.loop.run_until_complete(asyncio.wait([coro() for coro in self.listeners.ready if type(coro) != tuple]))
+        self.loop.run_until_complete(asyncio.gather(*[coro() for coro in self.listeners.ready if type(coro) != tuple]))
         self.loop.run_forever()
     async def on_message(self, message):
         pass
+    
     async def __message_consumer(self, websocket):
         try:
             async for message in websocket:             
@@ -35,22 +37,22 @@ class ServerSocket(BaseSocket):
                 except JSONDecodeError:
                     data = message
                 message_cls: Message = Message(data=data, websocket=websocket, created_at=datetime.utcnow())
-                self.loop.create_task(asyncio.wait(
+                asyncio.gather(*(
                      [coro(message_cls) for coro in self.listeners.message]+[self.__collector_verifier(futures, 'message', message_cls) 
                      for futures in self.listeners.message_collector
                     ]))
         except ConnectionClosedError as e:
             self.clients.remove(websocket)
             self.disconnected_clients.append({websocket: Object({'code': e.code, 'reason': e.reason, 'disconnected': True})})
-            await asyncio.wait([coro(websocket, e.code, e.reason) for coro in self.listeners.disconnect]+[
+            asyncio.gather(*([coro(websocket, e.code, e.reason) for coro in self.listeners.disconnect]+[
                      self.__collector_verifier(futures, 'disconnect', e.code, e.reason) 
                      for futures in self.listeners.disconnect_collector
-                    ])
+                    ]))
             return e
     async def __on_connect(self, client, path):
-        await asyncio.wait([coro(client, path) for coro in self.listeners.connect]+[self.__collector_verifier(futures, 'connect', client, path) 
+        await asyncio.gather(*([coro(client, path) for coro in self.listeners.connect]+[self.__collector_verifier(futures, 'connect', client, path) 
                      for futures in self.listeners.connect_collector
-                    ])
+                    ]))
     async def on_connect(self, client, path):
         pass
     async def on_disconnect(self, client, code, reason):
@@ -76,14 +78,14 @@ class ServerSocket(BaseSocket):
     async def __main(self, websocket, path):
         self.clients.append(websocket)
         self.loop.create_task(self.__on_connect(websocket, path))
-        done, pending = await asyncio.wait([self.__message_consumer(websocket)], return_when=asyncio.ALL_COMPLETED)
+        done = await asyncio.gather(self.__message_consumer(websocket), return_exceptions=True)
         if ConnectionClosedError in [type(ret.result()) for ret in done]: return
         self.clients.remove(websocket)
         self.disconnected_clients.append({websocket: Object({'code': websocket.close_code, 'reason': websocket.close_reason, 'disconnected': True})})
-        await asyncio.wait([coro(websocket, websocket.close_code, websocket.close_reason) for coro in self.listeners.close]+[
+        await asyncio.gather(*([coro(websocket, websocket.close_code, websocket.close_reason) for coro in self.listeners.close]+[
                      self.__collector_verifier(futures, 'close', websocket, websocket.close_code, websocket.close_reason) 
                      for futures in self.listeners.close_collector
-                    ])
+                    ]))
     async def send(self, client, content: typing.Any = None, *, data: dict = None):
         await client.send(content=content, data=data)
     async def close(self, client, *, code: int = 1000, reason: str = ''):

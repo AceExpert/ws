@@ -17,8 +17,9 @@ class ClientSocket(BaseSocket):
         self.listeners.close.append(self.on_close)
         self.connection = None
         self.disconnection = None
-    def connect(self, uri: str, ssl=None):
-        self.loop.run_until_complete(self.__main(uri, ssl))
+    def connect(self, uri: str, **kwargs):
+        kwargs.pop("create_protocol", None)
+        self.loop.run_until_complete(self.__main(uri, **kwargs))
         self.loop.run_forever()
     async def on_message(self, message):
         pass
@@ -30,21 +31,21 @@ class ClientSocket(BaseSocket):
                 except JSONDecodeError:
                     data = message
                 message_cls: Message = Message(data=data, websocket=self.connection, created_at=datetime.utcnow())
-                self.loop.create_task(asyncio.wait(
-                    [coro(message_cls) for coro in self.listeners['message']]+[self.__collector_verifier(futures, 'message', message_cls) 
+                asyncio.gather(
+                    *([coro(message_cls) for coro in self.listeners['message']]+[self.__collector_verifier(futures, 'message', message_cls) 
                      for futures in self.listeners.message_collector
-                    ]
-                ))
+                    ])
+                )
         except ConnectionClosedError as e:
             self.disconnection = Object({'code': e.code, 'reason': e.reason, 'disconnected': True})
-            await asyncio.wait([coro(e.code, e.reason) for coro in self.listeners.disconnect]+[
+            asyncio.gather(*([coro(e.code, e.reason) for coro in self.listeners.disconnect]+[
                      self.__collector_verifier(futures, 'disconnect', e.code, e.reason) 
                      for futures in self.listeners.disconnect_collector
-                    ]
+                    ])
             )
             return e
     async def __on_connect(self):
-        await asyncio.wait([coro() for coro in self.listeners['connect']])
+        await asyncio.gather(*[coro() for coro in self.listeners['connect']])
     async def on_connect(self):
         pass
     async def on_disconnect(self, code, reason):
@@ -65,16 +66,16 @@ class ClientSocket(BaseSocket):
                 pass
     def collector(self, time: float):
         return EventCollector(websocket=self, time=time)
-    async def __main(self, uri, ssl=None):
-        self.connection = await websockets.connect(uri, create_protocol=WSCProtocol, ssl=ssl)
+    async def __main(self, uri, **kwargs):
+        self.connection = await websockets.connect(uri, create_protocol=WSCProtocol, **kwargs)
         self.loop.create_task(self.__on_connect())
-        done, pending = await asyncio.wait([self.__message_consumer()], return_when=asyncio.ALL_COMPLETED)
+        done = await asyncio.gather(self.__message_consumer(), return_exceptions=True)
         if ConnectionClosedError in [type(ret.result()) for ret in done]: return
         self.disconnection = Object({'code': self.connection.close_code, 'reason': self.connection.close_reason, 'disconnected': True})
-        await asyncio.wait([coro(self.connection.close_code, self.connection.close_reason) for coro in self.listeners.close]+[
+        await asyncio.gather(*([coro(self.connection.close_code, self.connection.close_reason) for coro in self.listeners.close]+[
                      self.__collector_verifier(futures, 'close', self.connection.close_code, self.connection.close_reason) 
                      for futures in self.listeners.close_collector
-                    ])
+                    ]))
     async def send(self, content: typing.Any = None, *, data: dict = None):
         await self.connection.send(content=content, data=data)
     async def close(self, code: int = 1000, reason: str = ''):
