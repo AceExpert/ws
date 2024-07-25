@@ -79,7 +79,7 @@ class ServerSocket(BaseSocket):
         self.clients.append(websocket)
         self.loop.create_task(self.__on_connect(websocket, path))
         done = await asyncio.gather(self.__message_consumer(websocket), return_exceptions=True)
-        if ConnectionClosedError in [type(ret.result()) for ret in done]: return
+        if ConnectionClosedError in done: return
         self.clients.remove(websocket)
         self.disconnected_clients.append({websocket: Object({'code': websocket.close_code, 'reason': websocket.close_reason, 'disconnected': True})})
         await asyncio.gather(*([coro(websocket, websocket.close_code, websocket.close_reason) for coro in self.listeners.close]+[

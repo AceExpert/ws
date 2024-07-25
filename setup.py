@@ -5,13 +5,13 @@ with open("./README.md", "r", encoding="utf-8") as fh:
 
 setuptools.setup(
     name="c-websockets",
-    version="2.1.3",
+    version="2.1.5",
     author="Cybertron",
     packages=['ws', 'ws.exceptions', 'ws.models', 'ws.utils', 'ws.wsprotocols'],
     description="WebSocket implementation in Python built on top of websockets python library. Similar to Node.js's ws.",
     long_description=long_description,
     long_description_content_type="text/markdown",
-    install_requires=['websockets==9.1'],
+    install_requires=['websockets'],
     python_requires='>=3.8.0',
     include_package_data=True,
     url="https://github.com/AceExpert/ws",
@@ -28,6 +28,7 @@ setuptools.setup(
         'Programming Language :: Python :: 3',
         'Programming Language :: Python :: 3.8',
         'Programming Language :: Python :: 3.9',
+        'Programming Language :: Python :: 3.12',
         'Topic :: Internet',
         'Topic :: Internet :: WWW/HTTP :: Session',
         'Topic :: Software Development :: Libraries',
