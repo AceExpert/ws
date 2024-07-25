@@ -70,7 +70,7 @@ class ClientSocket(BaseSocket):
         self.connection = await websockets.connect(uri, create_protocol=WSCProtocol, **kwargs)
         self.loop.create_task(self.__on_connect())
         done = await asyncio.gather(self.__message_consumer(), return_exceptions=True)
-        if ConnectionClosedError in [type(ret.result()) for ret in done]: return
+        if ConnectionClosedError in done: return
         self.disconnection = Object({'code': self.connection.close_code, 'reason': self.connection.close_reason, 'disconnected': True})
         await asyncio.gather(*([coro(self.connection.close_code, self.connection.close_reason) for coro in self.listeners.close]+[
                      self.__collector_verifier(futures, 'close', self.connection.close_code, self.connection.close_reason) 
