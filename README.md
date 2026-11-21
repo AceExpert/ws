@@ -158,3 +158,6 @@ The difference isn't huge but it is there. `on_disconnect` event is fired only i
 **Note:** Unlike `on_disconnect` listener, `on_close` is called on both sides that is both on the client and server websocket sides with the same reason and code.
 ### Why this exists?
 I made this library because I was fed up of websockets library because it didn't have event based communication like Node.js's ws library and that made it difficult to work about it. Before I was doubtful whether I would work on it anymore or not... but it has went on to become a pretty large library but still not well known as of now... 
+
+### Why is it called `ws`?
+> Because "wss" sounded like a snake. 🐍
